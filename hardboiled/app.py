@@ -107,17 +107,43 @@ class App:
     def use(self, middleware):
         self.middlewares.append(middleware)
 
-    def get(self, path):
-        return self.router.get(path)
+        def get(self, path, middlewares=None):
+        return self.router.get(path, middlewares)
 
-    def post(self, path):
-        return self.router.post(path)
+    def post(self, path, middlewares=None):
+        return self.router.post(path, middlewares)
 
-    def put(self, path):
-        return self.router.put(path)
+    def put(self, path, middlewares=None):
+        return self.router.put(path, middlewares)
 
-    def delete(self, path):
-        return self.router.delete(path)
+    def delete(self, path, middlewares=None):
+        return self.router.delete(path, middlewares)
+
+    async def _dispatch(self, request: Request) -> Response:
+        route, params = self.router.resolve(request.method, request.path)
+        response = Response()
+
+        if route is None:
+            return response.status(404).json({"error": "Not Found"})
+
+        request.params = params
+
+        async def call_handler():
+            return await route.handler(request, response)
+
+        chain = call_handler
+        # middlewares de la ruta se ejecutan más cerca del handler que los globales
+        for middleware in reversed(route.middlewares):
+            chain = self._wrap(middleware, request, response, chain)
+        for middleware in reversed(self.middlewares):
+            chain = self._wrap(middleware, request, response, chain)
+
+        try:
+            await chain()
+        except Exception as exc:
+            response.status(500).json({"error": str(exc)})
+
+        return response
 
     async def _parse_request(self, reader: asyncio.StreamReader) -> Request:
         request_line = await reader.readline()
@@ -145,29 +171,6 @@ class App:
             body = raw_body.decode()
 
         return Request(method, path, headers, body, query=query)
-
-    async def _dispatch(self, request: Request) -> Response:
-        handler, params = self.router.resolve(request.method, request.path)
-        response = Response()
-
-        if handler is None:
-            return response.status(404).json({"error": "Not Found"})
-
-        request.params = params
-
-        async def call_handler():
-            return await handler(request, response)
-
-        chain = call_handler
-        for middleware in reversed(self.middlewares):
-            chain = self._wrap(middleware, request, response, chain)
-
-        try:
-            await chain()
-        except Exception as exc:
-            response.status(500).json({"error": str(exc)})
-
-        return response
 
     def _wrap(self, middleware, request, response, next_fn):
         async def wrapped():
