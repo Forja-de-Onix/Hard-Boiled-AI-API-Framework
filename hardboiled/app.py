@@ -2,7 +2,7 @@ import asyncio
 import json
 import socket
 from .router import Router
-
+from .openapi import OpenAPI
 
 
 class Request:
@@ -107,17 +107,56 @@ class App:
     def use(self, middleware):
         self.middlewares.append(middleware)
 
-        def get(self, path, middlewares=None):
+        def __init__(self):
+        self.router = Router()
+        self.middlewares = []
+        self.openapi = OpenAPI()
+
+    def get(self, path, middlewares=None, doc=None):
+        if doc:
+            self.openapi.add_route("GET", path, **doc)
         return self.router.get(path, middlewares)
 
-    def post(self, path, middlewares=None):
+    def post(self, path, middlewares=None, doc=None):
+        if doc:
+            self.openapi.add_route("POST", path, **doc)
         return self.router.post(path, middlewares)
 
-    def put(self, path, middlewares=None):
+    def put(self, path, middlewares=None, doc=None):
+        if doc:
+            self.openapi.add_route("PUT", path, **doc)
         return self.router.put(path, middlewares)
 
-    def delete(self, path, middlewares=None):
+    def delete(self, path, middlewares=None, doc=None):
+        if doc:
+            self.openapi.add_route("DELETE", path, **doc)
         return self.router.delete(path, middlewares)
+
+    def enable_docs(self, path="/docs", spec_path="/openapi.json"):
+        async def openapi_json(req, res):
+            res.json(self.openapi.to_spec())
+
+        async def docs_page(req, res):
+            html = f"""<!DOCTYPE html>
+                <html>
+                <head>
+                <title>{self.openapi.title} — Docs</title>
+                <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+                </head>
+                <body>
+                <div id="swagger-ui"></div>
+                <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+                <script>
+                    window.onload = () => {{
+                    SwaggerUIBundle({{ url: "{spec_path}", dom_id: "#swagger-ui" }});
+                    }};
+                </script>
+                </body>
+                </html>"""
+            res.text(html).set_header("Content-Type", "text/html; charset=utf-8")
+
+        self.router.add_route("GET", spec_path, openapi_json)
+        self.router.add_route("GET", path, docs_page)
 
     async def _dispatch(self, request: Request) -> Response:
         route, params = self.router.resolve(request.method, request.path)
