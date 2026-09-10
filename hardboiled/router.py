@@ -1,11 +1,12 @@
 import re
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 class Route:
-    def __init__(self, method: str, path: str, handler: Callable):
+    def __init__(self, method: str, path: str, handler: Callable, middlewares: Optional[List[Callable]] = None):
         self.method = method.upper()
         self.path = path
         self.handler = handler
+        self.middlewares = middlewares or []
         self.param_names: List[str] = []
         self.pattern = self._compile(path)
 
@@ -34,30 +35,30 @@ class Router:
     def __init__(self):
         self.routes: List[Route] = []
 
-    def add_route(self, method: str, path: str, handler: Callable):
-        self.routes.append(Route(method, path, handler))
+    def add_route(self, method: str, path: str, handler: Callable, middlewares: Optional[List[Callable]] = None):
+        self.routes.append(Route(method, path, handler, middlewares))
 
-    def get(self, path: str):
+    def get(self, path: str, middlewares: Optional[List[Callable]] = None):
         def decorator(handler):
-            self.add_route("GET", path, handler)
+            self.add_route("GET", path, handler, middlewares)
             return handler
         return decorator
 
-    def post(self, path: str):
+    def post(self, path: str, middlewares: Optional[List[Callable]] = None):
         def decorator(handler):
-            self.add_route("POST", path, handler)
+            self.add_route("POST", path, handler, middlewares)
             return handler
         return decorator
 
-    def put(self, path: str):
+    def put(self, path: str, middlewares: Optional[List[Callable]] = None):
         def decorator(handler):
-            self.add_route("PUT", path, handler)
+            self.add_route("PUT", path, handler, middlewares)
             return handler
         return decorator
 
-    def delete(self, path: str):
+    def delete(self, path: str, middlewares: Optional[List[Callable]] = None):
         def decorator(handler):
-            self.add_route("DELETE", path, handler)
+            self.add_route("DELETE", path, handler, middlewares)
             return handler
         return decorator
 
@@ -65,5 +66,5 @@ class Router:
         for route in self.routes:
             params = route.match(method, path)
             if params is not None:
-                return route.handler, params
+                return route, params
         return None, None
