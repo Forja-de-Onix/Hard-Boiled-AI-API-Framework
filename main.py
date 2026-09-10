@@ -1,8 +1,11 @@
 from hardboiled import App
 from hardboiled.config import load_env
 from hardboiled.ai_response import ask
+from hardboiled.database import init_database
+
 
 load_env()
+init_database()
 
 app = App()
 

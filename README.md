@@ -26,6 +26,39 @@ Most Python frameworks either force a specific ORM and templating stack (Django)
 - Docker containers for the framework and its official integrations
 - `requirements.txt` with install extras as dependencies are added
 
+## Installation
+
+```bash
+git clone <your-repo-url>
+cd hard-boiled-ai-api-microframework
+cp .env.example .env
+```
+
+The core has no required dependencies. Install only what your chosen `DB_ENGINE` needs:
+
+```bash
+# Postgres
+pip install sqlalchemy[asyncio] asyncpg
+
+# MySQL
+pip install sqlalchemy[asyncio] aiomysql
+
+# MongoDB
+pip install motor
+```
+
+And for AI connectors that call an HTTP API (all of them, including Ollama):
+
+```bash
+pip install httpx
+```
+
+Then edit `.env` — see [Setup](wiki/en/Setup.md) for details — and run:
+
+```bash
+python main.py
+```
+
 ## Quick start
 
 ```bash

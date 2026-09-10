@@ -26,6 +26,39 @@ La mayoría de frameworks en Python o bien imponen un ORM y stack de plantillas 
 - Contenedores Docker para el framework y sus integraciones oficiales
 - `requirements.txt` con extras de instalación a medida que se añaden dependencias
 
+## Instalación
+
+```bash
+git clone <url-de-tu-repo>
+cd hard-boiled-ai-api-microframework
+cp .env.example .env
+```
+
+El núcleo no tiene dependencias obligatorias. Instala solo lo que necesite tu `DB_ENGINE` elegido:
+
+```bash
+# Postgres
+pip install sqlalchemy[asyncio] asyncpg
+
+# MySQL
+pip install sqlalchemy[asyncio] aiomysql
+
+# MongoDB
+pip install motor
+```
+
+Y para los conectores de IA que llaman a una API HTTP (todos, incluido Ollama):
+
+```bash
+pip install httpx
+```
+
+Luego edita `.env` — consulta [Setup](wiki/es/Setup.md) para más detalle — y ejecuta:
+
+```bash
+python main.py
+```
+
 ## Inicio rápido
 
 ```bash
