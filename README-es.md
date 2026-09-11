@@ -23,7 +23,7 @@ La mayoría de frameworks en Python o bien imponen un ORM y stack de plantillas 
 ## Instalación
 
 ```bash
-git clone <url-de-tu-repo>
+git clone https://github.com/Forja-de-Onix/Hard-Boiled-AI-API-Framework.git
 cd hard-boiled-ai-api-framework
 cp .env.example .env
 ```

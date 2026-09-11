@@ -23,7 +23,7 @@ Most Python frameworks either force a specific ORM and templating stack (Django)
 ## Installation
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Forja-de-Onix/Hard-Boiled-AI-API-Framework.git
 cd hard-boiled-ai-api-framework
 cp .env.example .env
 ```
